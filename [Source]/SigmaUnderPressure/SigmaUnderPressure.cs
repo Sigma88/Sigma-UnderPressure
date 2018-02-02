@@ -1,5 +1,33 @@
-﻿namespace SigmaUnderPressure
+﻿using UnityEngine;
+
+
+namespace SigmaUnderPressure
 {
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    class BallastDensityFix : MonoBehaviour
+    {
+        static CelestialBody planet = null;
+
+        void Update()
+        {
+            if (planet != FlightGlobals.currentMainBody)
+            {
+                planet = FlightGlobals.currentMainBody;
+
+                if (planet.ocean)
+                {
+                    PartResourceDefinition ballast = PartResourceLibrary.Instance.GetDefinition("Ballast");
+
+                    var cfg = new ConfigNode();
+                    ballast.Save(cfg);
+                    cfg.RemoveValues("density");
+                    cfg.AddValue("density", planet.oceanDensity * 0.001);
+                    ballast.Load(cfg);
+                }
+            }
+        }
+    }
+
     public class ModuleWaterPump : PartModule
     {
         [KSPField(guiName = "Mode", isPersistant = true, guiActive = true, guiActiveEditor = true), UI_Toggle(scene = UI_Scene.All, affectSymCounterparts = UI_Scene.All, disabledText = "Flood Tank", enabledText = "Blow Tank")]
